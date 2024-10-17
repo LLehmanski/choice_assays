@@ -1,1 +1,39 @@
 ###########Statistical analysis of choice assays###########
+library(dplyr)
+library(ggpubr)
+library(ggplot2)
+library(tidyverse)
+library(plyr)
+library(scales)
+
+data <- read.csv('____', header = TRUE, sep = ";", dec = ".")
+#####soluble sugar statistics##############
+subs <- c('concentration')
+data [subs] <- lapply(data [subs], gsub, pattern = ",", replacement= ".")
+data [subs] <- sapply(data [subs], as.numeric)
+data1 = filter(data, NSC != 'Total')
+#######Shapiro Wilk and Bartletts tests
+shapiro.test(data1$concentration) 
+hist(data1$concentration)
+bartlett.test(concentration ~ Treatment, data = data)
+#####Mann Whitney U test/ Wilcoxon #####  fill '' with compound of interest                   
+data_comp <- data[data$NSC == 'Fructose',]
+wilcox.test(data_comp$concentration ~ data_comp$Treatment, data = data_comp, exact = TRUE, correct = FALSE, conf.int = TRUE)
+
+########## phenols statistics###########
+subs <- c('Astringin','Catechin', 'Isorhapontin', 'PB1', 
+          'Taxifolin','Tax.glucoside' )
+data [subs] <- lapply(data [subs], gsub, pattern = ",", replacement= ".")
+data [subs] <- sapply(data [subs], as.numeric)
+data1 <- data %>% pivot_longer( cols = c('Astringin','Catechin', 'Isorhapontin', 'PB1', 
+                                         'Taxifolin','Tax.glucoside'),
+                                names_to = 'Phenols',
+                                values_to = 'concentration')
+#######Shapiro Wilk and Bartletts tests
+shapiro.test(data1$concentration)
+bartlett.test(concentration ~ Treatment, data = data1)
+#####Mann Whitney U test/ Wilcoxon ##### fill '' with compound of interest
+data_comp <- data1[data1$Phenols == 'Taxifolin',]
+wilcox.test(data_comp$concentration ~ data_comp$Treatment, data = data_comp, exact = TRUE, correct = FALSE, conf.int = TRUE)
+
+
