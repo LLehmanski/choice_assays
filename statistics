@@ -5,6 +5,7 @@ library(ggplot2)
 library(tidyverse)
 library(plyr)
 library(scales)
+library(cat)
 
 data <- read.csv('____', header = TRUE, sep = ";", dec = ".")
 #####soluble sugar statistics##############
@@ -36,4 +37,52 @@ bartlett.test(concentration ~ Treatment, data = data1)
 data_comp <- data1[data1$Phenols == 'Taxifolin',]
 wilcox.test(data_comp$concentration ~ data_comp$Treatment, data = data_comp, exact = TRUE, correct = FALSE, conf.int = TRUE)
 
+#########VOCs statistics######
+data <- data[!is.na(data$norm),]
+data$concentration = as.numeric(data$concentration)
+data2 = filter(data, measurement != '16')
+data2 = filter(data2, std_norm != 60000000)
+data2 = filter(data2, measurement != 1)
+#######Shapiro Wilk and Bartletts tests
+shapiro.test(data2$concentration)
+bartlett.test(concentration ~ treatment, data = data2)
+#####Mann Whitney U test/ Wilcoxon ##### fill '' with compound of interest
+data_comp <- data[data$compound == '3-Carene',]
+wilcox.test(data_comp$concentration ~ data_comp$treatment, data = data_comp, exact = TRUE, correct = FALSE, conf.int = TRUE)
 
+######Choice statistics###########
+#####shapiro wilk and levenes####
+shapiro.test(data$Choice.after.min) 
+hist(data$Choice.after.min)
+leveneTest(Choice.after.min ~ cues, data=data)
+###total average 
+mean(data$Choice.after.min)
+sd(data$Choice.after.min)
+###olf average
+data1 = filter(data, cues == 'olfactory')
+###mult average 
+data1 = filter(data, cues == 'multisensory')
+#Fisher’s exact test 
+fisher <- data.frame(
+  "olfactory" = c(10,14),
+  "multisensory" = c(76,108),
+  row.names = c("standing", "windthrown"),
+  stringsAsFactors = FALSE)
+mosaicplot(fisher,
+           main = "Mosaic plot",
+           color = TRUE
+)
+chisq.test(fisher)$expected
+fisher.test(fisher)
+
+###fishers choice no choice 
+fisher <- data.frame(
+  "olfactory" = c(21,24),
+  "multisensory" = c(62,186),
+  row.names = c("no-choice", "choice"),
+  stringsAsFactors = FALSE)
+mosaicplot(fisher,
+           main = "Mosaic plot",
+           color = TRUE
+)
+fisher.test(fisher)
